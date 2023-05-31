@@ -1,36 +1,31 @@
 import streamlit as st
-import requests
 from bs4 import BeautifulSoup
+import requests
 
-def scrape_website(url):
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
-
-    
-    books_section = soup.find('div', class_='col-md-8')
-
-  
-    products = books_section.find_all('div', class_='col-md-4')
-
-    
-    for product in products:
-        name = product.find('h3').text.strip()
-        price = product.find('h4').text.strip()
-        st.write(f"Name: {name}, Price: {price}")
-        st.write("---")
-
-
+@st.cache
 def main():
-    st.title("Data Scraper App")
-    st.write("Enter the URL of the website to scrape:")
-    url = st.text_input("URL", value="https://www.scrapethissite.com/")
+    st.title("Web Scraper")
+    
+    # Input field for the URL
+    url = st.text_input("Enter the URL to scrape")
 
     if st.button("Scrape"):
-        if url:
-            scrape_website(url)
-        else:
-            st.warning("Please enter a URL.")
-
+        try:
+            response = requests.get(url)
+            soup = BeautifulSoup(response.content, "html.parser")
+            
+            # Scrape data from the website
+            # For example, let's scrape all the headlines from an HTML page
+            headlines = soup.find_all("h1")
+            
+            # Display the scraped data
+            st.write("Scraped headlines:")
+            for headline in headlines:
+                st.write(headline.text)
+            
+        except requests.exceptions.RequestException as e:
+            st.write("Error occurred:", e)
 
 if __name__ == "__main__":
     main()
+
