@@ -1,34 +1,36 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
 import requests
+from bs4 import BeautifulSoup
 
-def scrape_books():
-    url = "https://books.toscrape.com/catalogue/category/books_1/index.html"
+def scrape_website(url):
     response = requests.get(url)
-    html = response.text
+    soup = BeautifulSoup(response.text, 'html.parser')
 
-    # Extracting data using pandas
-    dfs = pd.read_html(html)
-    books_table = dfs[0]
+    
+    books_section = soup.find('div', class_='col-md-8')
 
-    # Cleaning up the data
-    books_table.columns = books_table.iloc[0]
-    books_table = books_table[1:]
+  
+    products = books_section.find_all('div', class_='col-md-4')
 
-    # Selecting relevant columns
-    books = books_table[['Title', 'Price']]
+    
+    for product in products:
+        name = product.find('h3').text.strip()
+        price = product.find('h4').text.strip()
+        st.write(f"Name: {name}, Price: {price}")
+        st.write("---")
 
-    # Adding a random availability column using numpy
-    availabilities = ['In Stock', 'Out of Stock']
-    books['Availability'] = np.random.choice(availabilities, size=len(books))
 
-    return books
+def main():
+    st.title("Data Scraper App")
+    st.write("Enter the URL of the website to scrape:")
+    url = st.text_input("URL", value="https://www.scrapethissite.com/")
 
-# Streamlit UI
-st.title("Books Scraper")
+    if st.button("Scrape"):
+        if url:
+            scrape_website(url)
+        else:
+            st.warning("Please enter a URL.")
 
-if st.button("Scrape"):
-    scraped_data = scrape_books()
-    st.write("Scraped Data:")
-    st.write(scraped_data)
+
+if __name__ == "__main__":
+    main()
