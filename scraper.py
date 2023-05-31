@@ -1,23 +1,22 @@
 import requests
-from bs4 import BeautifulSoup
+import re
 
 # Send a GET request to the website
 response = requests.get("http://books.toscrape.com/")
-soup = BeautifulSoup(response.text, 'html.parser')
 
-# Find all the book containers on the page
-book_containers = soup.find_all('article', class_='product_pod')
+# Extract the book containers using regular expressions
+book_containers = re.findall(r'<article class="product_pod">(.*?)</article>', response.text, re.DOTALL)
 
 # Iterate over each book container and extract relevant information
 for container in book_containers:
     # Extract the title of the book
-    title = container.h3.a['title']
+    title = re.search(r'<h3><a.*?title="(.*?)">', container).group(1)
     
     # Extract the price of the book
-    price = container.find('p', class_='price_color').text
+    price = re.search(r'<p class="price_color">(.*?)</p>', container).group(1)
     
     # Extract the availability of the book
-    availability = container.find('p', class_='instock').text.strip()
+    availability = re.search(r'<p class="instock availability">(.*?)</p>', container).group(1).strip()
     
     print(f"Title: {title}")
     print(f"Price: {price}")
