@@ -35,7 +35,8 @@ if st.button("Scrape"):
     data = scrape_website(url)
     if data:
         st.success("Scraping successful!")
-        for book in data:
+        for i, book in enumerate(data[:5], start=1):
+            st.write(f"Book {i}")
             st.write(book)
     else:
         st.warning("No data found.")
