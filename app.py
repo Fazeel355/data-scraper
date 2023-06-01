@@ -18,7 +18,9 @@ def scrape_website(url):
         for book_element in book_elements:
             title = book_element.h3.a['title']
             price = book_element.find('p', class_='price_color').text
-            books.append({'Title': title, 'Price': price})
+            rating = book_element.find('p', class_='star-rating')['class'][1]
+            stock = book_element.find('p', class_='instock availability').text.strip()
+            books.append({'Title': title, 'Price': price, 'Rating': rating, 'Stock': stock})
 
         return books
     else:
