@@ -1,6 +1,6 @@
 import streamlit as st
 import requests
-import re
+from bs4 import BeautifulSoup
 
 def scrape_website(url):
     # Make a GET request to the specified URL
@@ -8,27 +8,32 @@ def scrape_website(url):
 
     # Check if the request was successful
     if response.status_code == 200:
-        # Use regular expressions to extract data from the HTML
-        pattern = r'<h1>(.*?)</h1>'  # Example pattern: extract text inside <h1> tags
-        matches = re.findall(pattern, response.text)
-        return matches
+        soup = BeautifulSoup(response.content, 'html.parser')
+        books = []
+
+        # Find all book elements on the page
+        book_elements = soup.find_all('article', class_='product_pod')
+
+        # Extract data from each book element
+        for book_element in book_elements:
+            title = book_element.h3.a['title']
+            price = book_element.find('p', class_='price_color').text
+            books.append({'Title': title, 'Price': price})
+
+        return books
     else:
         st.error(f"Error: {response.status_code}")
 
 # Streamlit app code
-st.title("Web Scraper App")
-
-# Input URL
-url = st.text_input("Enter the URL of the website to scrape")
+st.title("Book Scraper App")
 
 # Scrape button
 if st.button("Scrape"):
-    if url:
-        data = scrape_website(url)
-        if data:
-            st.success("Scraping successful!")
-            st.write(data)
-        else:
-            st.warning("No data found.")
+    url = "https://books.toscrape.com/"
+    data = scrape_website(url)
+    if data:
+        st.success("Scraping successful!")
+        for book in data:
+            st.write(book)
     else:
-        st.warning("Please enter a URL.")
+        st.warning("No data found.")
