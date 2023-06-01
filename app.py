@@ -1,24 +1,34 @@
+import streamlit as st
 import requests
 import re
 
-# Send a GET request to the website
-response = requests.get("http://books.toscrape.com/")
+def scrape_website(url):
+    # Make a GET request to the specified URL
+    response = requests.get(url)
 
-# Extract the book containers using regular expressions
-book_containers = re.findall(r'<article class="product_pod">(.*?)</article>', response.text, re.DOTALL)
+    # Check if the request was successful
+    if response.status_code == 200:
+        # Use regular expressions to extract data from the HTML
+        pattern = r'<h1>(.*?)</h1>'  # Example pattern: extract text inside <h1> tags
+        matches = re.findall(pattern, response.text)
+        return matches
+    else:
+        st.error(f"Error: {response.status_code}")
 
-# Iterate over each book container and extract relevant information
-for container in book_containers:
-    # Extract the title of the book
-    title = re.search(r'<h3><a.*?title="(.*?)">', container).group(1)
-    
-    # Extract the price of the book
-    price = re.search(r'<p class="price_color">(.*?)</p>', container).group(1)
-    
-    # Extract the availability of the book
-    availability = re.search(r'<p class="instock availability">(.*?)</p>', container).group(1).strip()
-    
-    print(f"Title: {title}")
-    print(f"Price: {price}")
-    print(f"Availability: {availability}")
-    print("-----------------------")
+# Streamlit app code
+st.title("Web Scraper App")
+
+# Input URL
+url = st.text_input("Enter the URL of the website to scrape")
+
+# Scrape button
+if st.button("Scrape"):
+    if url:
+        data = scrape_website(url)
+        if data:
+            st.success("Scraping successful!")
+            st.write(data)
+        else:
+            st.warning("No data found.")
+    else:
+        st.warning("Please enter a URL.")
